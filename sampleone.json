@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "project-kb": {
+      "command": "node",
+      "args": ["C:/path/to/your/confluence-mcp-server/index.js"],
+      "env": {
+        "CONFLUENCE_URL": "https://your-domain.atlassian.net",
+        "CONFLUENCE_EMAIL": "your-email@company.com",
+        "CONFLUENCE_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
