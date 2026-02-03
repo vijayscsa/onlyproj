@@ -187,22 +187,36 @@ function AppContent({ onLogout, user }) {
                                 <span className="user-name">{user}</span>
                             </button>
                             {showUserMenu && (
-                                <div className="user-dropdown">
-                                    <div className="user-dropdown-header">
-                                        <div className="user-avatar-large">
-                                            <User size={24} />
+                                <>
+                                    {/* Overlay to close menu when clicking outside */}
+                                    <div
+                                        className="user-menu-overlay"
+                                        onClick={() => setShowUserMenu(false)}
+                                    />
+                                    <div className="user-dropdown" onClick={(e) => e.stopPropagation()}>
+                                        <div className="user-dropdown-header">
+                                            <div className="user-avatar-large">
+                                                <User size={24} />
+                                            </div>
+                                            <div className="user-info">
+                                                <span className="user-display-name">{user}</span>
+                                                <span className="user-role">Administrator</span>
+                                            </div>
                                         </div>
-                                        <div className="user-info">
-                                            <span className="user-display-name">{user}</span>
-                                            <span className="user-role">Administrator</span>
-                                        </div>
+                                        <div className="user-dropdown-divider"></div>
+                                        <button
+                                            className="user-dropdown-item"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleLogout();
+                                            }}
+                                        >
+                                            <LogOut size={16} />
+                                            <span>Log out</span>
+                                        </button>
                                     </div>
-                                    <div className="user-dropdown-divider"></div>
-                                    <button className="user-dropdown-item" onClick={handleLogout}>
-                                        <LogOut size={16} />
-                                        <span>Log out</span>
-                                    </button>
-                                </div>
+                                </>
                             )}
                         </div>
                     </div>
@@ -218,14 +232,6 @@ function AppContent({ onLogout, user }) {
                     </Routes>
                 </div>
             </main>
-
-            {/* Click outside to close user menu */}
-            {showUserMenu && (
-                <div
-                    className="user-menu-overlay"
-                    onClick={() => setShowUserMenu(false)}
-                />
-            )}
         </div>
     );
 }
