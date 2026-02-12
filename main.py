@@ -269,18 +269,31 @@ async def list_incidents(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _safe_int(val, default=0):
+    """Safely convert a value to int, returning default if None or invalid."""
+    if val is None:
+        return default
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return default
+
+
 @app.get("/api/incidents/stats/summary")
 async def get_incident_stats():
-    """Get incident statistics summary - filtered to allowed services only
+    """Get incident statistics summary - filtered by team only.
     
-    Uses PagerDuty REST API V2 to fetch accurate counts.
+    Uses the same parameter pattern as the working /api/incidents endpoint
+    (team_ids only, no service_ids) to ensure compatibility.
     Each API call is independently wrapped so one failure doesn't break everything.
+    
+    IMPORTANT: PagerDuty API v2 may NOT return a 'total' field, or may return null.
+    We must always count the incidents array directly to be safe.
     """
     try:
         if not mcp_client:
             raise HTTPException(status_code=503, detail="MCP client not initialized")
         
-        allowed_service_ids = get_allowed_service_ids()
         team_id = get_team_id()
         now = datetime.utcnow()
         today_midnight_str = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat() + "Z"
@@ -291,35 +304,36 @@ async def get_incident_stats():
         high_urgency = 0
         low_urgency = 0
         
-        # Fetch triggered incidents
+        # Fetch triggered incidents (same pattern as working /api/incidents)
         try:
             triggered_result = await mcp_client.execute_tool("list_incidents", {
                 "statuses": ["triggered"], 
                 "limit": 100,
-                "service_ids": allowed_service_ids,
                 "team_ids": [team_id]
             })
-            triggered_list = triggered_result.get("incidents", [])
-            triggered_total = triggered_result.get("total", len(triggered_list))
-            high_urgency += len([i for i in triggered_list if i.get("urgency") == "high"])
-            low_urgency += len([i for i in triggered_list if i.get("urgency") == "low"])
+            if triggered_result and isinstance(triggered_result, dict):
+                triggered_list = triggered_result.get("incidents") or []
+                # Always use len() as primary count — PagerDuty API v2 may omit 'total' or set it to null
+                triggered_total = _safe_int(triggered_result.get("total"), len(triggered_list))
+                high_urgency += len([i for i in triggered_list if i.get("urgency") == "high"])
+                low_urgency += len([i for i in triggered_list if i.get("urgency") == "low"])
         except Exception as e:
-            print(f"⚠️ Error fetching triggered incidents: {e}")
+            print(f"⚠️ Error fetching triggered incidents: {e}", flush=True)
         
         # Fetch acknowledged incidents
         try:
             acknowledged_result = await mcp_client.execute_tool("list_incidents", {
                 "statuses": ["acknowledged"], 
                 "limit": 100,
-                "service_ids": allowed_service_ids,
                 "team_ids": [team_id]
             })
-            acknowledged_list = acknowledged_result.get("incidents", [])
-            acknowledged_total = acknowledged_result.get("total", len(acknowledged_list))
-            high_urgency += len([i for i in acknowledged_list if i.get("urgency") == "high"])
-            low_urgency += len([i for i in acknowledged_list if i.get("urgency") == "low"])
+            if acknowledged_result and isinstance(acknowledged_result, dict):
+                acknowledged_list = acknowledged_result.get("incidents") or []
+                acknowledged_total = _safe_int(acknowledged_result.get("total"), len(acknowledged_list))
+                high_urgency += len([i for i in acknowledged_list if i.get("urgency") == "high"])
+                low_urgency += len([i for i in acknowledged_list if i.get("urgency") == "low"])
         except Exception as e:
-            print(f"⚠️ Error fetching acknowledged incidents: {e}")
+            print(f"⚠️ Error fetching acknowledged incidents: {e}", flush=True)
         
         # Fetch resolved incidents (broader window, filter client-side)
         try:
@@ -327,18 +341,17 @@ async def get_incident_stats():
             resolved_result = await mcp_client.execute_tool("list_incidents", {
                 "statuses": ["resolved"], 
                 "limit": 100,
-                "service_ids": allowed_service_ids,
                 "team_ids": [team_id],
                 "since": thirty_days_ago
             })
-            resolved_all = resolved_result.get("incidents", [])
-            # Filter to only incidents resolved today by checking last_status_change_at
-            for inc in resolved_all:
-                status_changed = inc.get("last_status_change_at", "")
-                if status_changed and status_changed >= today_midnight_str:
-                    resolved_today_count += 1
+            if resolved_result and isinstance(resolved_result, dict):
+                resolved_all = resolved_result.get("incidents") or []
+                for inc in resolved_all:
+                    status_changed = inc.get("last_status_change_at", "")
+                    if status_changed and status_changed >= today_midnight_str:
+                        resolved_today_count += 1
         except Exception as e:
-            print(f"⚠️ Error fetching resolved incidents: {e}")
+            print(f"⚠️ Error fetching resolved incidents: {e}", flush=True)
         
         return {
             "triggered": triggered_total,
@@ -353,21 +366,135 @@ async def get_incident_stats():
         raise
     except Exception as e:
         import traceback
+        print(f"CRITICAL ERROR in get_incident_stats: {e}", flush=True)
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Critical error in stats summary: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Stats summary error: {str(e)}")
 
 
 @app.get("/api/incidents/{incident_id}")
 async def get_incident(incident_id: str):
-    """Get incident details"""
+    """Get enriched incident details with alerts, custom details, annotations, and notes.
+    
+    This endpoint returns the full PagerDuty incident data PLUS:
+    - All alerts with their complete body (custom details, labels, annotations, firing info)
+    - Incident notes
+    - First trigger log entry for channel/integration info
+    This matches what you see in the PagerDuty portal.
+    """
     if not mcp_client:
         raise HTTPException(status_code=503, detail="MCP client not initialized")
     
     try:
-        result = await mcp_client.execute_tool("get_incident_details", {"incident_id": incident_id})
-        return result
+        # Fetch incident details, alerts, notes, and log entries in parallel
+        import asyncio
+        
+        async def safe_execute(tool_name, params):
+            """Execute a tool call safely, returning None on failure."""
+            try:
+                result = await mcp_client.execute_tool(tool_name, params)
+                return result if isinstance(result, dict) else {}
+            except Exception as e:
+                print(f"⚠️ Error in {tool_name}: {e}", flush=True)
+                return {}
+        
+        incident_task = safe_execute("get_incident_details", {"incident_id": incident_id})
+        alerts_task = safe_execute("list_incident_alerts", {"incident_id": incident_id, "limit": 50})
+        notes_task = safe_execute("get_incident_notes", {"incident_id": incident_id})
+        log_task = safe_execute("get_incident_log_entries", {"incident_id": incident_id})
+        
+        results = await asyncio.gather(incident_task, alerts_task, notes_task, log_task)
+        incident_data, alerts_data, notes_data, log_data = results
+        
+        incident = incident_data.get("incident") or incident_data or {}
+        alerts = alerts_data.get("alerts") or []
+        notes = notes_data.get("notes") or []
+        log_entries = log_data.get("log_entries") or []
+        
+        # Enrich incident with alerts data (custom details, labels, annotations, runbook URLs)
+        enriched_alerts = []
+        for alert in alerts:
+            enriched_alert = {
+                "id": alert.get("id"),
+                "status": alert.get("status"),
+                "severity": alert.get("severity"),
+                "summary": alert.get("summary"),
+                "created_at": alert.get("created_at"),
+                "html_url": alert.get("html_url"),
+                "alert_key": alert.get("alert_key"),
+                "suppressed": alert.get("suppressed", False),
+            }
+            
+            # Extract full alert body with custom details
+            body = alert.get("body") or {}
+            if body:
+                enriched_alert["body"] = body
+                # Extract custom details specifically
+                details = body.get("details") or body.get("cef_details") or {}
+                if isinstance(details, dict):
+                    enriched_alert["custom_details"] = details
+                    # Extract known important fields
+                    enriched_alert["labels"] = details.get("labels") or details.get("firing") or {}
+                    enriched_alert["annotations"] = details.get("annotations") or {}
+                    enriched_alert["source"] = details.get("source") or details.get("Source") or ""
+                    enriched_alert["runbook_url"] = (
+                        details.get("runbook_url") or 
+                        (details.get("annotations") or {}).get("runbook_url") or 
+                        ""
+                    )
+                    enriched_alert["description"] = (
+                        details.get("description") or
+                        (details.get("annotations") or {}).get("description") or
+                        ""
+                    )
+                    enriched_alert["num_firing"] = details.get("num_firing")
+                    enriched_alert["num_resolved"] = details.get("num_resolved")
+                elif isinstance(details, str):
+                    enriched_alert["custom_details"] = {"text": details}
+            
+            # Extract CEF (Common Event Format) details
+            cef = alert.get("body", {}).get("cef_details") or {}
+            if cef:
+                enriched_alert["cef_details"] = cef
+            
+            enriched_alerts.append(enriched_alert)
+        
+        # Build the enriched response
+        response = {
+            "incident": incident,
+            "alerts": enriched_alerts,
+            "notes": notes,
+            "log_entries": log_entries[:20],  # Last 20 log entries
+            "alert_count": len(enriched_alerts),
+            "note_count": len(notes),
+        }
+        
+        return response
+        
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/incidents/{incident_id}/alerts")
+async def get_incident_alerts(incident_id: str):
+    """Get all alerts for an incident with full body/custom details.
+    
+    Returns the complete alert data including labels, annotations,
+    custom details, firing info, runbook URLs — everything shown in PagerDuty portal.
+    """
+    if not mcp_client:
+        raise HTTPException(status_code=503, detail="MCP client not initialized")
+    
+    try:
+        result = await mcp_client.execute_tool("list_incident_alerts", {
+            "incident_id": incident_id,
+            "limit": 100
+        })
+        return result if isinstance(result, dict) else {"alerts": []}
+    except Exception as e:
+        print(f"⚠️ Error fetching alerts for {incident_id}: {e}", flush=True)
+        return {"alerts": []}
 
 
 @app.get("/api/incidents/{incident_id}/log_entries")
@@ -378,35 +505,48 @@ async def get_incident_log(incident_id: str):
     
     try:
         result = await mcp_client.execute_tool("get_incident_log_entries", {"incident_id": incident_id})
-        return result
+        return result if isinstance(result, dict) else {"log_entries": []}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"⚠️ Error fetching log entries for {incident_id}: {e}", flush=True)
+        return {"log_entries": []}
 
 
 @app.get("/api/incidents/{incident_id}/related")
 async def get_related_incidents(incident_id: str):
-    """Get related incidents for an incident"""
+    """Get related incidents for an incident.
+    
+    NOTE: PagerDuty's Related Incidents API requires AIOps add-on.
+    Returns empty array gracefully if the feature is not available.
+    """
     if not mcp_client:
         raise HTTPException(status_code=503, detail="MCP client not initialized")
     
     try:
         result = await mcp_client.execute_tool("get_related_incidents", {"incident_id": incident_id})
-        return result
+        return result if isinstance(result, dict) else {"related_incidents": []}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"⚠️ Related incidents not available for {incident_id}: {e}", flush=True)
+        # Return empty rather than 500 — this is an optional AIOps feature
+        return {"related_incidents": []}
 
 
 @app.get("/api/incidents/{incident_id}/past")
 async def get_past_incidents(incident_id: str):
-    """Get past incidents related to an incident"""
+    """Get past incidents related to an incident.
+    
+    NOTE: PagerDuty's Past Incidents API requires AIOps add-on.
+    Returns empty array gracefully if the feature is not available.
+    """
     if not mcp_client:
         raise HTTPException(status_code=503, detail="MCP client not initialized")
     
     try:
         result = await mcp_client.execute_tool("get_past_incidents", {"incident_id": incident_id})
-        return result
+        return result if isinstance(result, dict) else {"past_incidents": []}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"⚠️ Past incidents not available for {incident_id}: {e}", flush=True)
+        # Return empty rather than 500 — this is an optional AIOps feature
+        return {"past_incidents": []}
 
 
 @app.post("/api/incidents/{incident_id}/responders")

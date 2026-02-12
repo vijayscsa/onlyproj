@@ -756,6 +756,11 @@ class PagerDutyMCPClient:
                     response.raise_for_status()
                     return response.json()
                 
+                elif tool_name == "get_incident_notes":
+                    response = await client.get(f"/incidents/{params['incident_id']}/notes")
+                    response.raise_for_status()
+                    return response.json()
+                
                 elif tool_name == "list_services":
                     query_params = {"limit": params.get("limit", 25), "offset": params.get("offset", 0)}
                     response = await client.get("/services", params=query_params)
@@ -1690,6 +1695,76 @@ class PagerDutyMCPClient:
                     "content": params.get("content"),
                     "created_at": "2026-01-23T18:30:00Z"
                 }
+            }
+        
+        elif tool_name == "get_incident_notes":
+            return {
+                "notes": [
+                    {
+                        "id": "NOTE001",
+                        "content": "Investigating root cause - appears to be related to upstream data feed failure.",
+                        "created_at": "2026-01-30T18:15:00Z",
+                        "user": {"id": "PUSER1", "summary": "John Doe"}
+                    },
+                    {
+                        "id": "NOTE002",
+                        "content": "Escalated to platform team. Runbook steps 1-3 completed.",
+                        "created_at": "2026-01-30T18:30:00Z",
+                        "user": {"id": "PUSER2", "summary": "Jane Smith"}
+                    }
+                ]
+            }
+        
+        elif tool_name == "list_incident_alerts":
+            return {
+                "alerts": [
+                    {
+                        "id": "PALERT001",
+                        "status": "triggered",
+                        "severity": "critical",
+                        "summary": "Failure : Daily - RTF Data Services : HLS : (STREAM | HLS | HLS_ACCT | ALL | DALY | 1202.001) : 20260212",
+                        "created_at": "2026-02-12T09:43:00Z",
+                        "alert_key": "0e2486e10994a41a29658dbd4890778896e6ae93fb68da75a7abcbb4258ac663d",
+                        "html_url": "https://cba.pagerduty.com/alerts/PALERT001",
+                        "suppressed": False,
+                        "body": {
+                            "type": "alert_body",
+                            "details": {
+                                "firing": "Labels:\n- alertname = prod-failure-daily-rtf-data-services-hls\n- ci_number = CI081725901\n- cmdb_id = CI081725900\n- env = prod\n- rtf_application = HLS\n- rtf_business_date = 20260212\n- rtf_job = STREAM | HLS | HLS_ACCT | ALL | DALY | 1202.001\n- rtf_system = Daily - RTF Data Services\n- severity = critical\nAnnotations:\n- description = Failed JOB.\n- message = Failure : Daily - RTF Data Services : HLS : (STREAM | HLS | HLS_ACCT | ALL | DALY | 1202.001) : 20260212\n- runbook_url = https://www-prd.rtf-ab-prod.rtfo2.rtfdrtf01.aws.prod.au.internal.cba/controlcenter/spa/#/daily-jobs/system=Daily - RTF Data Services",
+                                "num_firing": 1,
+                                "num_resolved": 0,
+                                "resolved": "",
+                                "annotations": {
+                                    "description": "Failed JOB.",
+                                    "message": "Failure : Daily - RTF Data Services : HLS : (STREAM|HLS|HLS_ACCT|ALL|DALY|1202.001) : 20260212",
+                                    "runbook_url": "https://www-prd.rtf-ab-prod.rtfo2.rtfdrtf01.aws.prod.au.internal.cba/controlcenter/spa/#/daily-jobs/system=Daily - RTF Data Services",
+                                    "summary": "Failure | Daily - RTF Data Services | HLS"
+                                },
+                                "labels": {
+                                    "alertname": "prod-failure-daily-rtf-data-services-hls",
+                                    "ci_number": "CI081725901",
+                                    "cmdb_id": "CI081725900",
+                                    "env": "prod",
+                                    "rtf_application": "HLS",
+                                    "rtf_business_date": "20260212",
+                                    "rtf_job": "STREAM | HLS | HLS_ACCT | ALL | DALY | 1202.001",
+                                    "rtf_system": "Daily - RTF Data Services",
+                                    "severity": "critical"
+                                },
+                                "source": "/graph?g0.expr=max+by+%28rtf_system%2C+rtf_application%2C+rtf_job%2C+rtf_business_date%2C+ci_number%29+%28rtf_ab_job_status%7Bci_number%3D%22CI081725901%22%2Cnamespace%3D%22rtf-ab-data-serv-stg%22%2Crtf_application%3D%22HLS%22%2Crtf_system%3D%22Daily+-+RTF+Data+Services%22%7D%29+%3D+%3D+4&g0.tab=1",
+                                "SilenceURL": "https://metrics.cba/alerting/silence/new?alertmanager=Alertmanager&matcher=alertname%3Dprod-failure-daily-rtf-data-services-hls&matcher=cmdb_id%3DCI081725900"
+                            },
+                            "contexts": [
+                                {
+                                    "type": "link",
+                                    "href": "https://metrics.cba/alerting/silence/new?alertmanager=Alertmanager",
+                                    "text": "View in Alertmanager"
+                                }
+                            ]
+                        },
+                        "service": {"id": "PBD0TCK", "summary": "EdgeNode DP&E Ingestion and controls - Prod"}
+                    }
+                ]
             }
         
         elif tool_name == "get_incident_log_entries":
