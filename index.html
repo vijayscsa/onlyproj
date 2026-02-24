@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSecOps Operations Portal | RTF DP&E</title>
+    <meta name="description" content="Centralized bookmarks for RTF DP&E DevSecOps Operational tasks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding-top: 2rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+
+        /* Search Bar */
+        .search-container {
+            max-width: 600px;
+            margin: -2rem auto 4rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        /* Grid System */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .category-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Bookmark Links */
+        .bookmark-list {
+            list-style: none;
+        }
+
+        .bookmark-item {
+            margin-bottom: 1rem;
+        }
+
+        .bookmark-link {
+            display: block;
+            text-decoration: none;
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .bookmark-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            padding-left: 1rem;
+        }
+
+        .link-title {
+            display: block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            color: var(--accent-primary);
+        }
+
+        .link-desc {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 6rem;
+            padding-bottom: 3rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-section {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo">RTF DP&E Operations</div>
+            <div class="subtitle">DevSecOps Operational Task Portal</div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="search" class="search-input" placeholder="Search for applications or keywords...">
+        </div>
+
+        <div class="categories-grid" id="main-grid">
+            <!-- Content will be injected by JS -->
+        </div>
+
+        <footer>
+            &copy; 2024 RTF DP&E DevSecOps | Operational Excellence Portal
+        </footer>
+    </div>
+
+    <script>
+        const bookmarkData = [
+            {
+                category: "Platform Compute",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>`,
+                bookmarks: [
+                    { title: "AWS Management Console", url: "#", desc: "Primary interface for managing cloud infrastructure and serverless compute resources." },
+                    { title: "Azure Portal", url: "#", desc: "Cloud management dashboard for AKS clusters and enterprise computing services." },
+                    { title: "Kubernetes Dashboard", url: "#", desc: "Web-based UI for managing containerized applications across global clusters." },
+                    { title: "GC Cloud Console", url: "#", desc: "Centralized hub for Google Cloud Platform compute engine and app engine instances." },
+                    { title: "Rancher Managed K8s", url: "#", desc: "Enterprise-grade multi-cluster Kubernetes management and automation platform." },
+                    { title: "VMware vCenter", url: "#", desc: "Unified management for virtualized infrastructure and private cloud compute nodes." }
+                ]
+            },
+            {
+                category: "Platform DataOps",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4m0 5c0 2.21-3.58 4-8 4s-8-1.79-8-4" /></svg>`,
+                bookmarks: [
+                    { title: "CBA Data Cloud", url: "https://www.amul.com", desc: "Cloud-native data warehouse for large-scale analytics and data sharing operations." },
+                    { title: "Databricks Workspace", url: "#", desc: "Unified data analytics platform for data engineering and machine learning pipelines." },
+                    { title: "Apache Airflow UI", url: "#", desc: "Workflow orchestration platform to manage and monitor data engineering tasks." },
+                    { title: "dbt Cloud", url: "#", desc: "Data transformation tool for version-controlled SQL modeling and testing." },
+                    { title: "BigQuery Console", url: "#", desc: "Serverless data warehouse interface for running petabyte-scale analysis." },
+                    { title: "MongoDB Atlas", url: "#", desc: "Fully managed NoSQL database service for modern application data workloads." }
+                ]
+            },
+            {
+                category: "Observability-Monitoring",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
+                bookmarks: [
+                    { title: "Grafana Dashboards", url: "#", desc: "The open observability platform for visualizing metrics, logs, and traces." },
+                    { title: "Prometheus Alerts", url: "#", desc: "Monitoring system for real-time alerting based on time-series data metrics." },
+                    { title: "Datadog Dashboard", url: "#", desc: "Unified monitoring platform for cloud-scale applications and server performance." },
+                    { title: "New Relic APM", url: "#", desc: "Application performance monitoring for deep visibility into transaction tracing." },
+                    { title: "Dynatrace Hub", url: "#", desc: "AI-powered monitoring for full-stack observability across hybrid-cloud environments." }
+                ]
+            },
+            {
+                category: "Observability-Logging",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>`,
+                bookmarks: [
+                    { title: "Splunk Enterprise", url: "#", desc: "Data platform for searching, monitoring, and analyzing machine-generated logs." },
+                    { title: "Kibana (ELK Stack)", url: "#", desc: "Visualize and explore Elasticsearch data with powerful logging analytics tools." },
+                    { title: "Graylog Interface", url: "#", desc: "Centralized log management for processing and analyzing massive log data volumes." },
+                    { title: "CloudWatch Logs", url: "#", desc: "AWS native service for monitoring and archiving application log streams." },
+                    { title: "Sumo Logic", url: "#", desc: "Cloud-native log analytics for continuous security and operational intelligence." }
+                ]
+            },
+            {
+                category: "Standards&Procedures",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
+                bookmarks: [
+                    { title: "Atlassian Confluence", url: "#", desc: "Collaborative wiki for documenting team standards, procedures, and runbooks." },
+                    { title: "GitHub Documentation", url: "#", desc: "Central repository for technical guides, API docs, and architecture diagrams." },
+                    { title: "NIST Security Standards", url: "#", desc: "Federal guidelines for maintaining secure information system infrastructures." },
+                    { title: "OWASP Top 10 Guides", url: "#", desc: "Standard awareness document for developers and web application security pros." },
+                    { title: "ISO/IEC 27001 Wiki", url: "#", desc: "Information security management systems (ISMS) implementation guidelines." }
+                ]
+            },
+            {
+                category: "DaytoDayOps",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+                bookmarks: [
+                    { title: "JIRA Service Management", url: "#", desc: "Issue tracking and project management tool for operational task workflow." },
+                    { title: "ServiceNow Portal", url: "#", desc: "Enterprise IT service management for change requests and incident tracking." },
+                    { title: "PagerDuty Dashboard", url: "#", desc: "Real-time incident response platform for managing on-call rotations." },
+                    { title: "Slack / MS Teams", url: "#", desc: "Communication hubs for real-time collaboration and ChatOps integrations." },
+                    { title: "GitHub Actions / CI/CD", url: "#", desc: "Automated workflows for code deployment and infrastructure-as-code updates." },
+                    { title: "Password Manager (Vault)", url: "#", desc: "Secure credential storage and access management for operational secrets." }
+                ]
+            },
+            {
+                category: "AIOps",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`,
+                bookmarks: [
+                    { title: "Moogsoft Platform", url: "#", desc: "AI-driven incident management for correlating alerts and noise reduction." },
+                    { title: "BigPanda Dashboard", url: "#", desc: "AIOps automation for event correlation and fast incident root cause analysis." },
+                    { title: "Dynatrace Davis AI", url: "#", desc: "Causation-based AI that interprets billions of dependencies in real-time." },
+                    { title: "Datadog Watchdog", url: "#", desc: "Autonomous monitoring that surface anomalies across logs and metrics." },
+                    { title: "Splunk ITSI", url: "#", desc: "IT Service Intelligence for service-level insights and predictive analytics." }
+                ]
+            }
+        ];
+
+        const grid = document.getElementById('main-grid');
+        const searchInput = document.getElementById('search');
+
+        function renderBookmarks(filteredData = bookmarkData) {
+            grid.innerHTML = '';
+            filteredData.forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                let bookmarksHtml = cat.bookmarks.map(b => `
+                    <li class="bookmark-item">
+                        <a href="${b.url}" class="bookmark-link" target="_blank">
+                            <span class="link-title">${b.title}</span>
+                            <span class="link-desc">${b.desc}</span>
+                        </a>
+                    </li>
+                `).join('');
+
+                section.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-icon">${cat.icon}</div>
+                        <h2 class="category-title">${cat.category}</h2>
+                    </div>
+                    <ul class="bookmark-list">
+                        ${bookmarksHtml}
+                    </ul>
+                `;
+                grid.appendChild(section);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = bookmarkData.map(cat => {
+                const filteredBookmarks = cat.bookmarks.filter(b => 
+                    b.title.toLowerCase().includes(term) || 
+                    b.desc.toLowerCase().includes(term) ||
+                    cat.category.toLowerCase().includes(term)
+                );
+                return { ...cat, bookmarks: filteredBookmarks };
+            }).filter(cat => cat.bookmarks.length > 0);
+            
+            renderBookmarks(filtered);
+        });
+
+        // Initial render
+        renderBookmarks();
+    </script>
+</body>
+</html>
