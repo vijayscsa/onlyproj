@@ -29,3 +29,19 @@ try:
 except Exception as e:
     print(f'Error: {e}')
 "
+
+
+{
+  "mcpServers": {
+    "confluence": {
+      "command": "mcp-atlassian-confluence",
+      "args": [],
+      "env": {
+        "ATLASSIAN_SITE_NAME": "your-company",
+        "ATLASSIAN_USER_EMAIL": "your.email@company.com",
+        "ATLASSIAN_API_TOKEN": "your_api_token_here"
+      },
+      "disabled": false
+    }
+  }
+}
