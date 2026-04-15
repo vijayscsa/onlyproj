@@ -20,3 +20,10 @@ graph TD
     style D fill:#f96,stroke:#333,stroke-width:2px
     style H fill:#bbf,stroke:#333,stroke-width:2px
     style F fill:#f66,stroke:#333
+
+
+
+
+
+
+    kubectl get pod <pod-name> -o jsonpath='{.status.startTime}' | xargs -I {} bash -c 'echo $(( $(date +%s) - $(date -d "{}" +%s) )) seconds'
