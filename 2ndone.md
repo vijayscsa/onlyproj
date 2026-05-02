@@ -30,7 +30,90 @@ This moves the business unit up the FinOps maturity curve faster than traditiona
 ### 7. **Quantifiable Business ROI**  
 - **Time savings**: Analysts and FinOps teams reclaim hours/days previously spent on reporting.  
 - **Faster decisions**: Real-time visibility into multi-cloud, container, and AI spend aligns technology investments with business value.  
-- **Competitive edge**: In the AI era, this setup turns cloud spend from a cost center into a strategic asset with traceable ROI.  
+- **Competitive edge**: In the AI era, this setup turns cloud spend from a cost center into a strategic asset with traceable ROI.
+
+
+
+
+**Best ways to list containers running on a specific Kubernetes node** (as an experienced K8s admin):
+
+### 1. Using `kubectl` (Most Common & Recommended)
+
+```bash
+# List all containers on a specific node (with pod name, namespace, container name, image, status)
+kubectl get pods --all-namespaces --field-selector=spec.nodeName=<node-name> \
+  -o custom-columns=NAMESPACE:.metadata.namespace,POD:.metadata.name,CONTAINER:.spec.containers[*].name,IMAGE:.spec.containers[*].image,STATUS:.status.phase
+
+# More detailed version (shows init containers too)
+kubectl get pods --all-namespaces --field-selector=spec.nodeName=<node-name> -o wide
+```
+
+**Even better** — show individual containers properly:
+
+```bash
+kubectl get pods --all-namespaces --field-selector=spec.nodeName=<node-name> \
+  -o jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{range .spec.containers[*]}{.name}{"\t"}{.image}{"\n"}{end}{end}'
+```
+
+### 2. Using `kubectl debug` (Node Shell) — Very Useful
+
+```bash
+# Get a debug shell on the node
+kubectl debug node/<node-name> -it --image=busybox
+
+# Inside the node shell:
+crictl ps                  # CRI-O / containerd (most common)
+# or
+ctr -n k8s.io containers list
+# or
+docker ps                  # if using Docker (old setups)
+```
+
+### 3. One-liner from your workstation (Best for daily use)
+
+```bash
+# List running containers per node with nice formatting
+for node in $(kubectl get nodes -o jsonpath='{.items[*].metadata.name}'); do
+  echo "=== Node: $node ==="
+  kubectl get pods --all-namespaces --field-selector=spec.nodeName=$node \
+    -o custom-columns=NAMESPACE:.metadata.namespace,POD:.metadata.name,CONTAINERS:.spec.containers[*].name,IMAGES:.spec.containers[*].image
+  echo
+done
+```
+
+### 4. Using `kubectl` + `jq` (Cleanest output)
+
+```bash
+kubectl get pods --all-namespaces -o json | jq -r '
+  .items[] | select(.spec.nodeName == "<node-name>") |
+  "\(.metadata.namespace)/\(.metadata.name) -> \(.spec.containers[].name) (\(.spec.containers[].image))"
+'
+```
+
+### 5. Other Useful Utilities
+
+| Tool              | Command                                      | Use Case |
+|-------------------|----------------------------------------------|----------|
+| `crictl`          | `crictl ps -o table`                         | Most modern clusters (containerd/cri-o) |
+| `ctr`             | `ctr -n k8s.io containers list`              | containerd directly |
+| `nerdctl`         | `nerdctl ps`                                 | Nice Docker-like CLI for containerd |
+| `kubectl node-shell` (plugin) | `kubectl node-shell <node>`               | Quick node access |
+| `k9s`             | Press `:` → type `pods` then filter by node  | Interactive UI |
+
+### Pro Tips from a fellow K8s Admin
+
+- Use **labels** or **taints** to make certain nodes easier to query.
+- For monitoring: Combine with `kubectl top pods --node=<node>` or Prometheus + Node Exporter.
+- To see **all** containers including paused/sandbox ones: Use `crictl ps -a`.
+- Create an alias:
+
+```bash
+alias kcontainers='f() { kubectl get pods --all-namespaces --field-selector=spec.nodeName=$1 -o custom-columns=NAMESPACE:.metadata.namespace,POD:.metadata.name,CONTAINER:.spec.containers[*].name,IMAGE:.spec.containers[*].image; }; f'
+```
+
+Usage: `kcontainers worker-node-03`
+
+Would you like a script that continuously watches containers on one or more nodes, or one that also shows resource usage (CPU/Memory) per container on that node?
 
 In short, the Cloudability MCP Server + AI client integration turns your existing approved API key into a **conversational FinOps co-pilot** that delivers faster insights, lower costs, broader adoption, and stronger business alignment—benefits that directly impact the bottom line and accelerate your FinOps transformation.  
 
