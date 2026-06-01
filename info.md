@@ -68,3 +68,12 @@ Next poll (60 s later) → same incident still triggered?
 Agent re-loads thread memory → sees previous actions & reasoning
 → can continue (e.g. "still no resolution after 5 min → escalate further" or "metrics improved → propose resolve")
 Once resolved (manually or auto) → no longer appears in triggered list → processing stops for that ID
+
+
+
+=============
+
+
+"I would like to build deeper expertise in designing, orchestrating, and productionising multi-agent Agentic AI systems at scale on AWS EKS (including agent frameworks such as LangGraph, CrewAI/AutoGen patterns, LLMOps, and Kubernetes-native operator patterns for AI workloads). This skill will immediately strengthen my current work in Cloud Operations and Platform support at Commonwealth Bank by enabling more autonomous, reliable, and observable workflow automation solutions that reduce manual toil and improve resilience in our EKS-based platforms. For future roles, it will position me to take on senior Platform Engineering or AI Platform Lead responsibilities, where I can architect enterprise-grade, secure, and cost-optimised intelligent automation platforms that drive the next level of operational excellence and innovation in a regulated financial services environment."
+
+
