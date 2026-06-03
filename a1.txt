@@ -1,0 +1,17 @@
+Build a complete, professional, nice-looking chatbot web app for a team of 10 DevSecOps engineers.
+
+Requirements:
+- Use Python + Streamlit (fast, beautiful UI out of the box)
+- Connect to Anthropic Claude API (use the key already configured in settings.json or environment)
+- Modern clean UI with dark mode by default
+- Persistent chat history during the session
+- Clear chat button
+- "Copy message" buttons
+- Nice welcome message for the team
+- Professional look (no ugly defaults)
+- Include a simple README.md with how to run it
+- Create requirements.txt and a one-command start script
+
+Start from scratch in the current empty folder. Create all files, install dependencies, initialize git if it makes sense, and make sure the app runs perfectly with "streamlit run app.py".
+
+After you finish building, tell me "READY" and show me the exact command to run the app.
