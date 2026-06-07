@@ -95,3 +95,31 @@ Consider you're an experienced AI Architect.  Create a very good innovative Agen
 First this needs to get developed and run in my macbook laptop in the directory /Users/vijayakumar.ravindran/benesta1/rtf-ops-nexus.  This Agentic chatbot UI can be referrenced from the picture attached and layout can be modelled from https://marketplace.kore.ai
 This RAG Chat AI application will use multiple MCP Servers.  The first MCP server is being mcp-atlassian MCP Server which runs from /Users/vijaykumar.ravindran/benesta1/mcps/mcp-atlassian/ in local macbook.    The mcp_settings.json is attached herewith.
 This needs to run in my macOs laptop later it needs to convert to a docker image and get deployed in an AWS ECS hosted location. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Create a single, high-resolution professional infographic in landscape orientation (16:9 ratio), clean modern corporate style for senior management presentation. Title at the top in bold sans-serif: "[FY 2026 Performance Highlights]". 
+
+Use a sophisticated color palette of deep navy blue, teal accents, white background, and subtle gray. Minimalist flat design with clean icons, subtle shadows, and plenty of white space. 
+
+Layout structure:
+• Top header with title and subtitle "[VIJAYAKUMAR RAVINDRAN/RTF CloudOps/DevSecOps Environment Mgmt] – Key Achievements"
+• Central area divided into 4–5 balanced sections with large bold metrics (font size clearly legible), percentage change arrows (green for positive), and matching icons or mini-charts (bar, gauge, line, or donut)
+• Bottom section: overall summary box + 3–4 key takeaways or next steps
+
+Exact data to visualize accurately (use real numbers, no approximations):
+Below are the main source of performance data
+
+Make all text crisp and perfectly readable, professional business infographic style similar to McKinsey or Harvard Business Review visuals. High contrast, no clutter, vector-sharp, premium executive look, 4K resolution.
