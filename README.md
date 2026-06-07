@@ -115,7 +115,7 @@ Create a single, high-resolution professional infographic in landscape orientati
 Use a sophisticated color palette of deep navy blue, teal accents, white background, and subtle gray. Minimalist flat design with clean icons, subtle shadows, and plenty of white space. 
 
 Layout structure:
-• Top header with title and subtitle "[VIJAYAKUMAR RAVINDRAN/RTF CloudOps/DevSecOps Environment Mgmt] – Key Achievements"
+• Top header with title and subtitle "[] – Key Achievements"
 • Central area divided into 4–5 balanced sections with large bold metrics (font size clearly legible), percentage change arrows (green for positive), and matching icons or mini-charts (bar, gauge, line, or donut)
 • Bottom section: overall summary box + 3–4 key takeaways or next steps
 
